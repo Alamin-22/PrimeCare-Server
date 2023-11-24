@@ -5,7 +5,11 @@ require('dotenv').config()
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:5174",],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+}));
 app.use(express.json());
 
 
@@ -22,31 +26,30 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-   
 
     const BannerCollection = client.db("DiagnosticDB").collection("Banner");
-   
 
-    app.get('/banner', async(req, res) =>{
-        const result = await BannerCollection.find().toArray();
-        res.send(result);
+
+    app.get('/banner', async (req, res) => {
+      const result = await BannerCollection.find().toArray();
+      res.send(result);
     })
-    
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-   
+
   }
 }
 run().catch(console.dir);
 
 
 app.get('/health', (req, res) => {
-    res.send('Diagnostic Server is Running')
+  res.send('Diagnostic Server is Running')
 })
 
 app.listen(port, () => {
-    console.log(`Diagnostic Server is Running on port ${port}`);
+  console.log(`Diagnostic Server is Running on port ${port}`);
 })
