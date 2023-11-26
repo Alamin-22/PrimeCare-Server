@@ -28,10 +28,17 @@ async function run() {
   try {
 
     const BannerCollection = client.db("DiagnosticDB").collection("Banner");
+    const TestCollection = client.db("DiagnosticDB").collection("Test");
 
 
     app.get('/banner', async (req, res) => {
       const result = await BannerCollection.find().toArray();
+      res.send(result);
+    })
+
+    // test 
+    app.get('/test', async (req, res) => {
+      const result = await TestCollection.find().toArray();
       res.send(result);
     })
 
