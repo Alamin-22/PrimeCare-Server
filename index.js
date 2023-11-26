@@ -29,13 +29,27 @@ async function run() {
 
     const BannerCollection = client.db("DiagnosticDB").collection("Banner");
     const TestCollection = client.db("DiagnosticDB").collection("Test");
+    const UsersCollection = client.db("DiagnosticDB").collection("Users");
     const PersonalizedCollection = client.db("DiagnosticDB").collection("Recommendations");
 
+    // user related
 
-    app.get('/banner', async (req, res) => {
-      const result = await BannerCollection.find().toArray();
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      // insert email if user dosent exist
+      //  i can do this many ways (1. email unique, upsert, simple checking)
+      const query = { email: user.email };
+      const existingUser = await UsersCollection.find(query).toArray();
+      // console.log(query);
+      console.log(existingUser);
+      if (existingUser.length > 0) {
+        return res.send({ message: "user ALready Exist ", insertedId: null })
+      }
+      const result = await UsersCollection.insertOne(user)
       res.send(result);
     })
+
+
 
     // test 
     app.get('/test', async (req, res) => {
@@ -59,6 +73,11 @@ async function run() {
     // Recommendation
     app.get('/recommendations', async (req, res) => {
       const result = await PersonalizedCollection.find().toArray();
+      res.send(result);
+    })
+    // banner
+    app.get('/banner', async (req, res) => {
+      const result = await BannerCollection.find().toArray();
       res.send(result);
     })
 
