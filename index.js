@@ -29,6 +29,7 @@ async function run() {
 
     const BannerCollection = client.db("DiagnosticDB").collection("Banner");
     const TestCollection = client.db("DiagnosticDB").collection("Test");
+    const PersonalizedCollection = client.db("DiagnosticDB").collection("Recommendations");
 
 
     app.get('/banner', async (req, res) => {
@@ -38,7 +39,26 @@ async function run() {
 
     // test 
     app.get('/test', async (req, res) => {
-      const result = await TestCollection.find().toArray();
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      console.log(page, size)
+      const result = await TestCollection.find()
+        .skip(page * size)
+        .limit(size)
+        .toArray();
+      res.send(result);
+    })
+    // testCOunt for pagination
+    app.get("/testCount", async (req, res) => {
+
+      const count = await TestCollection.estimatedDocumentCount();
+      res.send({ count });
+
+    })
+
+    // Recommendation
+    app.get('/recommendations', async (req, res) => {
+      const result = await PersonalizedCollection.find().toArray();
       res.send(result);
     })
 
