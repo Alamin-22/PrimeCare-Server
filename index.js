@@ -185,6 +185,35 @@ async function run() {
       res.send(result);
     })
 
+    app.patch("/test/:id", async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updatedDoc = {
+        $set: {
+          title: item.title,
+          shortDescription: item.shortDescription,
+          description: item.description,
+          image: item.image,
+          availableDates: item.availableDates,
+          time: item.time,
+          price: item.price,
+          availableSlot: item.availableSlot,
+          featured: item.featured,
+        }
+      }
+      console.log(filter, updatedDoc)
+      const result = await TestCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
+
+    app.delete("/test/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await TestCollection.deleteOne(query);
+      res.send(result);
+    })
+
     // testCOunt for pagination
     app.get("/testCount", async (req, res) => {
 
