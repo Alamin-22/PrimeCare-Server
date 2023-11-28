@@ -3,6 +3,8 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -28,38 +30,9 @@ app.post("/jwt", async (req, res) => {
 
 
 
-// verify
-
-const verifyToken = (req, res, next) => {
-  // console.log("checking inside the verify token", req.headers.authorization);
-
-  if (!req.headers.authorization) {
-    return res.status(401).send({ message: "Unauthorized Access" })
-  }
-  const token = req.headers.authorization.split(" ")[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decode) => {
-    if (err) {
-      0
-      return res.status(401).send({ message: " Unauthorized Access" })
-    }
-    req.decode = decode;
-    next();
-  })
-}
 
 
-// verify admin
 
-// const verifyAdmin = async (req, res, next) => {
-//   const email = req.decode.email;
-//   const query = { email: email };
-//   const user = await UserCollection.findOne(query);
-//   const isAdmin = user?.role === "admin";
-//   if (!isAdmin) {
-//     return res.status(403).send({ message: "Forbidden Access" });
-//   }
-//   next();
-// }
 
 
 
@@ -83,15 +56,52 @@ async function run() {
     const TestCollection = client.db("DiagnosticDB").collection("Test");
     const UsersCollection = client.db("DiagnosticDB").collection("Users");
     const PersonalizedCollection = client.db("DiagnosticDB").collection("Recommendations");
+    const PaymentCollection = client.db("DiagnosticDB").collection("Payments");
+
+    // verify
+
+    const verifyToken = (req, res, next) => {
+      // console.log("checking inside the verify token", req.headers.authorization);
+
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "Unauthorized Access" })
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decode) => {
+        if (err) {
+          0
+          return res.status(401).send({ message: " Unauthorized Access" })
+        }
+        req.decode = decode;
+        next();
+      })
+    }
 
 
+    // verify admin
 
-
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decode.email;
+      console.log("check admin verify", email)
+      const query = { email: email };
+      const user = await UsersCollection.findOne(query);
+      const isAdmin = user?.role === "admin";
+      if (!isAdmin) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+      next();
+    }
 
 
     // user related
-    app.get("/users", verifyToken, async (req, res) => {
+    app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const result = await UsersCollection.find().toArray();
+      res.send(result);
+    })
+    app.get("/users/:email", async (req, res) => {
+      const email = { email: req.params.email }
+      // console.log(email)
+      const result = await UsersCollection.find(email).toArray();
       res.send(result);
     })
 
@@ -133,7 +143,7 @@ async function run() {
       res.send(result);
     })
     // make admin
-    app.patch("/users/admin/:id", async (req, res) => {
+    app.patch("/users/admin/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
@@ -148,7 +158,7 @@ async function run() {
 
 
     // delete user
-    app.delete("/users/:id", async (req, res) => {
+    app.delete("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await UsersCollection.deleteOne(query);
@@ -165,7 +175,6 @@ async function run() {
     app.get('/test', async (req, res) => {
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
-      console.log(page, size)
       const result = await TestCollection.find()
         .skip(page * size)
         .limit(size)
@@ -185,7 +194,7 @@ async function run() {
       res.send(result);
     })
 
-    app.patch("/test/:id", async (req, res) => {
+    app.patch("/test/:id", verifyToken, verifyAdmin, async (req, res) => {
       const item = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) }
@@ -257,12 +266,47 @@ async function run() {
       const result = await BannerCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
-    app.delete("/banner/:id", async (req, res) => {
+    app.delete("/banner/:id",  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await BannerCollection.deleteOne(query);
       res.send(result);
     })
+
+
+
+    // payment intent
+    app.post(`/create-payment-intent`, async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+
+      console.log("Checking", amount)
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"]
+
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+
+    })
+
+
+    // payment post
+
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await PaymentCollection.insertOne(payment);
+      // carefully delete each item form the cart
+      console.log("payments info", payment);
+      res.send(result);
+    })
+
+
+
 
 
 
