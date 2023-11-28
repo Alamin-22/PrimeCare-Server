@@ -228,29 +228,42 @@ async function run() {
       res.send(result);
     })
     // banner
+    app.post("/banner", async (req, res) => {
+      const NewBanner = req.body;
+      console.log(NewBanner)
+      const result = await BannerCollection.insertOne(NewBanner);
+      res.send(result);
+    })
     app.get('/banner', async (req, res) => {
       const result = await BannerCollection.find().toArray();
       res.send(result);
     })
     app.get("/banner/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: id }
+      const query = { _id: new ObjectId(id) }
       const result = await BannerCollection.find(query).toArray();
       res.send(result);
     })
     app.patch("/banner/:id", async (req, res) => {
       const isActive = req.body.isActive;
       const id = req.params.id;
-      const filter = { _id: id }
+      const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
           isActive: isActive,
         }
       }
-      console.log(isActive, filter, updatedDoc)
+      // console.log(isActive, filter, updatedDoc)
       const result = await BannerCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
+    app.delete("/banner/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await BannerCollection.deleteOne(query);
+      res.send(result);
+    })
+
 
 
     // Send a ping to confirm a successful connection
