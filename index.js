@@ -232,6 +232,25 @@ async function run() {
       const result = await BannerCollection.find().toArray();
       res.send(result);
     })
+    app.get("/banner/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: id }
+      const result = await BannerCollection.find(query).toArray();
+      res.send(result);
+    })
+    app.patch("/banner/:id", async (req, res) => {
+      const isActive = req.body.isActive;
+      const id = req.params.id;
+      const filter = { _id: id }
+      const updatedDoc = {
+        $set: {
+          isActive: isActive,
+        }
+      }
+      console.log(isActive, filter, updatedDoc)
+      const result = await BannerCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
