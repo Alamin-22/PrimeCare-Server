@@ -100,7 +100,7 @@ async function run() {
     })
     app.get("/users/:email", async (req, res) => {
       const email = { email: req.params.email }
-      // console.log(email)
+      console.log("Alada email er data", email)
       const result = await UsersCollection.find(email).toArray();
       res.send(result);
     })
@@ -151,6 +151,26 @@ async function run() {
           role: "admin"
         }
       }
+      const result = await UsersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+
+    // edit user
+    app.patch("/users/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const UpdateUser = req.body;
+      const updateDoc = {
+        $set: {
+          Name: UpdateUser.Name,
+          District: UpdateUser.District,
+          Upazila: UpdateUser.Upazila,
+          bloodGroup: UpdateUser.bloodGroup,
+          photo: UpdateUser.photo,
+          phone: UpdateUser.phone,
+        }
+      }
+      console.log(updateDoc);
       const result = await UsersCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
@@ -266,7 +286,7 @@ async function run() {
       const result = await BannerCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
-    app.delete("/banner/:id",  async (req, res) => {
+    app.delete("/banner/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await BannerCollection.deleteOne(query);
