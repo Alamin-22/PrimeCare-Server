@@ -326,6 +326,50 @@ async function run() {
     })
 
 
+    // get paid Test data
+    // app.get('/payments/:email', async (req, res) => {
+
+    //   const paymentEmail = req.params.email;
+
+    //   const query = { email: paymentEmail };
+    //   console.log("Emial poaisi", query)
+    //   // Find the payment in the Payment collection
+    //   const payment = await PaymentCollection.find(query).toArray();
+    //   console.log("Payment Found line 336", payment)
+
+
+    // });
+
+
+    app.get('/payments/:email', verifyToken, async (req, res) => {
+
+      const paymentEmail = req.params.email;
+
+      // Ensure the Payment collection includes the user's email
+      const query = { email: paymentEmail };
+
+      // Find payments in the Payment collection for the specified user
+      const payments = await PaymentCollection.find(query).toArray();
+      console.log(payments)
+      res.send(payments)
+    });
+
+    // Cancel Booking
+
+    app.patch("/payments/:id", verifyToken, async (req, res) => {
+      const Status = req.body.cancelBooking;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: Status,
+        }
+      }
+      console.log(Status, filter, updatedDoc)
+      const result = await PaymentCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
+
 
 
 
