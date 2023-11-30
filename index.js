@@ -249,7 +249,7 @@ async function run() {
       res.send(result);
     })
 
-    app.delete("/test/:id", async (req, res) => {
+    app.delete("/test/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await TestCollection.deleteOne(query);
@@ -343,20 +343,28 @@ async function run() {
 
       const paymentEmail = req.params.email;
 
-      // Ensure the Payment collection includes the user's email
+
       const query = { email: paymentEmail };
 
-      // Find payments in the Payment collection for the specified user
+
       const payments = await PaymentCollection.find(query).toArray();
       console.log(payments)
       res.send(payments)
     });
 
+
     app.get('/payments', verifyToken, verifyAdmin, async (req, res) => {
-      const payments = await PaymentCollection.find().toArray();
+      const filter = req.query;
+      const query = filter.search
+        ? { email: { $regex: filter.search, $options: "i" } }
+        : {};
+      console.log("query", query);
+      const payments = await PaymentCollection.find(query).toArray();
+
       // console.log(payments)
-      res.send(payments)
+      res.send(payments);
     });
+
 
     // Submit Test
     app.patch("/payments/:id", verifyToken, verifyAdmin, async (req, res) => {
@@ -377,7 +385,7 @@ async function run() {
     })
     // Cancel Booking
 
-    app.patch("/payments/:id", verifyToken, async (req, res) => {
+    app.put("/payments/:id", verifyToken, async (req, res) => {
       const Status = req.body.cancelBooking;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -392,7 +400,7 @@ async function run() {
     })
     // payments delete
 
-    app.delete("/payments/:id", verifyToken, verifyAdmin, async (req, res) => {
+    app.delete("/payments/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await PaymentCollection.deleteOne(query);
