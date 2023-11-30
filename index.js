@@ -155,7 +155,7 @@ async function run() {
       res.send(result);
     })
     // // user status
-    app.patch("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
+    app.patch("/users/:id", verifyToken, async (req, res) => {
       const userStatus = req.body.block;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -168,11 +168,33 @@ async function run() {
       const result = await UsersCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
+
     // edit user
-    app.patch("/users/:id", verifyToken, async (req, res) => {
+    app.patch("/users/edit/:id", verifyToken,  async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const UpdateUser = req.body;
+      console.log("176", id, filter, UpdateUser)
+      const updateDoc = {
+        $set: {
+          Name: UpdateUser.Name,
+          District: UpdateUser.District,
+          Upazila: UpdateUser.Upazila,
+          bloodGroup: UpdateUser.bloodGroup,
+          photo: UpdateUser.photo,
+          phone: UpdateUser.phone,
+        }
+      }
+      console.log(updateDoc);
+      const result = await UsersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
+    // edit user
+    app.patch("/users/AdminEdit/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const UpdateUser = req.body;
+      console.log("176", id, filter, UpdateUser)
       const updateDoc = {
         $set: {
           Name: UpdateUser.Name,
@@ -222,7 +244,7 @@ async function run() {
     })
     app.post("/test", async (req, res) => {
       const NewTest = req.body;
-      console.log(NewTest)
+      // console.log(NewTest)
       const result = await TestCollection.insertOne(NewTest);
       res.send(result);
     })
@@ -313,7 +335,7 @@ async function run() {
       const { price } = req.body;
       const amount = parseInt(price * 100);
 
-      console.log("Checking", amount)
+      // console.log("Checking", amount)
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -334,7 +356,7 @@ async function run() {
       const payment = req.body;
       const result = await PaymentCollection.insertOne(payment);
       // carefully delete each item form the cart
-      console.log("payments info", payment);
+      // console.log("payments info", payment);
       res.send(result);
     })
 
@@ -358,7 +380,7 @@ async function run() {
       const query = filter.search
         ? { email: { $regex: filter.search, $options: "i" } }
         : {};
-      console.log("query", query);
+      // console.log("query", query);
       const payments = await PaymentCollection.find(query).toArray();
 
       // console.log(payments)
@@ -379,7 +401,7 @@ async function run() {
           status: item.status,
         }
       }
-      console.log("Found for admin submit", item, filter, updatedDoc)
+      // console.log("Found for admin submit", item, filter, updatedDoc)
       const result = await PaymentCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
@@ -394,7 +416,7 @@ async function run() {
           status: Status,
         }
       }
-      console.log(Status, filter, updatedDoc)
+      // console.log(Status, filter, updatedDoc)
       const result = await PaymentCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
@@ -410,7 +432,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
 
