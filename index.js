@@ -154,7 +154,20 @@ async function run() {
       const result = await UsersCollection.updateOne(filter, updateDoc);
       res.send(result);
     })
-
+    // // user status
+    app.patch("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const userStatus = req.body.block;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          Status: userStatus
+        }
+      }
+      console.log("found from in the admin patch 167 ", userStatus, updateDoc, filter);
+      const result = await UsersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })
     // edit user
     app.patch("/users/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
@@ -326,21 +339,6 @@ async function run() {
     })
 
 
-    // get paid Test data
-    // app.get('/payments/:email', async (req, res) => {
-
-    //   const paymentEmail = req.params.email;
-
-    //   const query = { email: paymentEmail };
-    //   console.log("Emial poaisi", query)
-    //   // Find the payment in the Payment collection
-    //   const payment = await PaymentCollection.find(query).toArray();
-    //   console.log("Payment Found line 336", payment)
-
-
-    // });
-
-
     app.get('/payments/:email', verifyToken, async (req, res) => {
 
       const paymentEmail = req.params.email;
@@ -350,6 +348,19 @@ async function run() {
 
       // Find payments in the Payment collection for the specified user
       const payments = await PaymentCollection.find(query).toArray();
+      console.log(payments)
+      res.send(payments)
+    });
+
+    app.get('/payments', verifyToken, verifyAdmin, async (req, res) => {
+
+      // const paymentEmail = req.params.email;
+
+      // // Ensure the Payment collection includes the user's email
+      // const query = { email: paymentEmail };
+
+      // Find payments in the Payment collection for the specified user
+      const payments = await PaymentCollection.find().toArray();
       console.log(payments)
       res.send(payments)
     });
@@ -369,8 +380,6 @@ async function run() {
       const result = await PaymentCollection.updateOne(filter, updatedDoc)
       res.send(result);
     })
-
-
 
 
 
