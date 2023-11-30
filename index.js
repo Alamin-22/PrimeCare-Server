@@ -9,7 +9,12 @@ const port = process.env.PORT || 5000;
 
 // middleware
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174",],
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://assignment12-bd75a.web.app",
+    "https://assignment12-bd75a.firebaseapp.com",
+  ],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 }));
@@ -57,6 +62,8 @@ async function run() {
     const UsersCollection = client.db("DiagnosticDB").collection("Users");
     const PersonalizedCollection = client.db("DiagnosticDB").collection("Recommendations");
     const PaymentCollection = client.db("DiagnosticDB").collection("Payments");
+    const DistrictsCollection = client.db("DiagnosticDB").collection("Districts");
+    const UpazilaCollection = client.db("DiagnosticDB").collection("Upazila");
 
     // verify
 
@@ -92,7 +99,14 @@ async function run() {
       next();
     }
 
-
+    app.get("/districts", async (req, res) => {
+      const result = await DistrictsCollection.find().toArray();
+      res.send(result);
+    })
+    app.get("/upazila", async (req, res) => {
+      const result = await UpazilaCollection.find().toArray();
+      res.send(result);
+    })
     // user related
     app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       const result = await UsersCollection.find().toArray();
@@ -170,7 +184,7 @@ async function run() {
     })
 
     // edit user
-    app.patch("/users/edit/:id", verifyToken,  async (req, res) => {
+    app.patch("/users/edit/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const UpdateUser = req.body;
