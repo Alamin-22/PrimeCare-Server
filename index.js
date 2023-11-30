@@ -353,18 +353,28 @@ async function run() {
     });
 
     app.get('/payments', verifyToken, verifyAdmin, async (req, res) => {
-
-      // const paymentEmail = req.params.email;
-
-      // // Ensure the Payment collection includes the user's email
-      // const query = { email: paymentEmail };
-
-      // Find payments in the Payment collection for the specified user
       const payments = await PaymentCollection.find().toArray();
-      console.log(payments)
+      // console.log(payments)
       res.send(payments)
     });
 
+    // Submit Test
+    app.patch("/payments/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updatedDoc = {
+        $set: {
+          submitDate: item.submitDate,
+          condition: item.condition,
+          links: item.links,
+          status: item.status,
+        }
+      }
+      console.log("Found for admin submit", item, filter, updatedDoc)
+      const result = await PaymentCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
     // Cancel Booking
 
     app.patch("/payments/:id", verifyToken, async (req, res) => {
@@ -378,6 +388,14 @@ async function run() {
       }
       console.log(Status, filter, updatedDoc)
       const result = await PaymentCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
+    // payments delete
+
+    app.delete("/payments/:id", verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await PaymentCollection.deleteOne(query);
       res.send(result);
     })
 
