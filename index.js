@@ -14,6 +14,7 @@ app.use(cors({
     "http://localhost:5174",
     "https://assignment12-bd75a.web.app",
     "https://assignment12-bd75a.firebaseapp.com",
+    "https://primecare-dioagnostic-center.netlify.app",
   ],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
